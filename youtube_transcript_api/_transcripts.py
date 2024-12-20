@@ -46,7 +46,8 @@ class TranscriptListFetcher(object):
         return TranscriptList.build(
             self._http_client,
             video_id,
-            self._extract_captions_json(self._fetch_video_html(video_id), video_id),
+            self._extract_captions_json(
+                self._fetch_video_html(video_id), video_id),
         )
 
     def _extract_captions_json(self, html, video_id):
@@ -92,7 +93,9 @@ class TranscriptListFetcher(object):
 
     def _fetch_html(self, video_id):
         response = self._http_client.get(
-            WATCH_URL.format(video_id=video_id), headers={"Accept-Language": "en-US"}
+            WATCH_URL.format(video_id=video_id),
+            headers={"Accept-Language": "en-US"},
+            proxies=self._http_client.proxies,
         )
         return unescape(_raise_http_errors(response, video_id).text)
 
@@ -165,7 +168,8 @@ class TranscriptList(object):
                 caption["name"]["simpleText"],
                 caption["languageCode"],
                 caption.get("kind", "") == "asr",
-                translation_languages if caption.get("isTranslatable", False) else [],
+                translation_languages if caption.get(
+                    "isTranslatable", False) else [],
             )
 
         return TranscriptList(
@@ -319,7 +323,7 @@ class Transcript(object):
         :rtype [{'text': str, 'start': float, 'end': float}]:
         """
         response = self._http_client.get(
-            self._url, headers={"Accept-Language": "en-US"}
+            self._url, headers={"Accept-Language": "en-US"}, proxies=self._http_client.proxies
         )
         return _TranscriptParser(preserve_formatting=preserve_formatting).parse(
             _raise_http_errors(response, self.video_id).text,
